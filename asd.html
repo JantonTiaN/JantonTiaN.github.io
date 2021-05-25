@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Digit Recognition</title>
+    <style>
+        body {
+            touch-action: none;
+            /*https://developer.mozilla.org/en-US/docs/Web/CSS/touch-action*/
+            font-family: 'Kodchasan', sans-serif;
+        }
+
+        h1 {
+            margin: 50px;
+            font-size: 50px;
+            text-align: center;
+        }
+
+        #text {
+            margin: 50px;
+            font-size: 30px;
+            text-align: center;
+        }
+
+        #paint {
+            border: 5px solid rgb(226, 96, 79);
+            margin: auto;
+        }
+
+        #predicted {
+            font-size: 60px;
+            margin-top: 60px;
+            text-align: center;
+        }
+
+        #number {
+            border: 3px solid black;
+            margin: auto;
+            margin-top: 15px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        #clear {
+            margin: auto;
+            margin-top: 50px;
+            padding: 20px;
+            text-align: center;
+            font-family: 'Kodchasan', sans-serif;
+        }
+    </style>
+</head>
+
+<body>
+    <!--<script type="text/javascript" src="http://livejs.com/live.js"></script>-->
+    <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.5.2/dist/tf.min.js"></script>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Kodchasan:wght@600&display=swap" rel="stylesheet">
+    <div id="input">
+        <h1>Digit Recognition</h1>
+        <div id="paint">
+            <canvas id="myCanvas"></canvas>
+        </div>
+    </div>
+    <div id="predicted">
+        <div id="text">Recognized digit</div>
+        <div id="number"></div>
+        <button id="clear">Clear</button>
+    </div>
+    <script>
+        var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        if (isMobile) {
+            $('#paint').css({ 'width': '60%' });
+            $('#number').css({ 'width': '30%', 'font-size': '240px' });
+            $('#clear').css({ 'font-size': '50px' });
+        } else {
+            $('#paint').css({ 'width': '250px' });
+            $('#number').css({ 'width': '150px', 'font-size': '120px' });
+            $('#clear').css({ 'font-size': '20px' });
+        }
+
+        var cw = $('#paint').width();
+        $('#paint').css({ 'height': cw + 'px' });
+
+        cw = $('#number').width();
+        $('#number').css({ 'height': cw + 'px' });
+
+        var canvas = document.getElementById('myCanvas');
+        var context = canvas.getContext('2d');
+
+        var compuetedStyle = getComputedStyle(document.getElementById('paint'));
+        canvas.width = parseInt(compuetedStyle.getPropertyValue('width'));
+        canvas.height = parseInt(compuetedStyle.getPropertyValue('height'));
+
+        var mouse = { x: 0, y: 0 };
+
+        canvas.addEventListener('mousemove', function (e) {
+            mouse.x = e.pageX - this.offsetLeft;
+            mouse.y = e.pageY - this.offsetTop;
+        }, false);
+
+        context.lineWidth = isMobile ? 60 : 25;
+        context.lineJoin = 'round';
+        context.lineCap = 'round';
+        context.strokeStyle = '#003366';
+
+        canvas.addEventListener('mousedown', function (e) {
+            context.moveTo(mouse.x, mouse.y);
+            context.beginPath();
+            canvas.addEventListener('mousemove', onPaint, false);
+        }, false);
+
+        canvas.addEventListener('mouseup', function () {
+            $('#number').html('<img id="spinner" src="spinner.gif" height="75" width="75"/>');
+            canvas.removeEventListener('mousemove', onPaint, false);
+            var img = new Image();
+            img.onload = function () {
+                context.drawImage(img, 0, 0, 28, 28);
+                data = context.getImageData(0, 0, 28, 28).data;
+                var input = [];
+                for (var i = 0; i < data.length; i += 4) {
+                    input.push(data[i + 2] / 255);
+                }
+                predict(input);
+            };
+            img.src = canvas.toDataURL('image/png');
+        }, false);
+
+        var onPaint = function () {
+            context.lineTo(mouse.x, mouse.y);
+            context.stroke();
+        };
+
+        tf.loadLayersModel('MyModel/model.json').then(function (model) {
+            window.model = model;
+        });
+
+        // http://bencentra.com/code/2014/12/05/html5-canvas-touch-events.html
+        // Set up touch events for mobile, etc
+        canvas.addEventListener('touchstart', function (e) {
+            var touch = e.touches[0];
+            canvas.dispatchEvent(new MouseEvent('mousedown', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            }));
+        }, false);
+        canvas.addEventListener('touchend', function (e) {
+            canvas.dispatchEvent(new MouseEvent('mouseup', {}));
+        }, false);
+        canvas.addEventListener('touchmove', function (e) {
+            var touch = e.touches[0];
+            canvas.dispatchEvent(new MouseEvent('mousemove', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            }));
+        }, false);
+
+        var predict = function (input) {
+            if (window.model) {
+                window.model.predict([tf.tensor(input).reshape([1, 28, 28, 1])]).array().then(function (scores) {
+                    scores = scores[0];
+                    predicted = scores.indexOf(Math.max(...scores));
+                    var alphabet
+                    switch (predicted) {
+                        case 0:
+                            alphabet = "A"
+                            break;
+                        case 1:
+                            alphabet = "B"
+                            break;
+                        case 2:
+                            alphabet = "C"
+                            break;
+                        case 3:
+                            alphabet = "D"
+                            break;
+                        case 4:
+                            alphabet = "E"
+                            break;
+                        case 5:
+                            alphabet = "F"
+                            break;
+                        case 6:
+                            alphabet = "G"
+                            break;
+                        case 7:
+                            alphabet = "H"
+                            break;
+                        case 8:
+                            alphabet = "I"
+                            break;
+                        case 9:
+                            alphabet = "J"
+                            break;
+                        case 10:
+                            alphabet = "K"
+                            break;
+                        case 11:
+                            alphabet = "L"
+                            break;
+                        case 12:
+                            alphabet = "M"
+                            break;
+                        case 13:
+                            alphabet = "N"
+                            break;
+                        case 14:
+                            alphabet = "O"
+                            break;
+                        case 15:
+                            alphabet = "P"
+                            break;
+                        case 16:
+                            alphabet = "Q"
+                            break;
+                        case 17:
+                            alphabet = "R"
+                            break;
+                        case 18:
+                            alphabet = "S"
+                            break;
+                        case 19:
+                            alphabet = "T"
+                            break;
+                        case 20:
+                            alphabet = "U"
+                            break;
+                        case 21:
+                            alphabet = "V"
+                            break;
+                        case 22:
+                            alphabet = "W"
+                            break;
+                        case 23:
+                            alphabet = "X"
+                            break;
+                        case 24:
+                            alphabet = "Y"
+                            break;
+                        case 25:
+                            alphabet = "Z"
+                            break;
+                        default:
+                            alphabet = " "
+                    }
+                    $('#number').html(alphabet);
+                });
+            } else {
+                setTimeout(function () { predict(input) }, 50);
+            }
+        }
+
+        $('#clear').click(function () {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            $('#number').html('');
+        });
+    </script>
+</body>
+
+</html>
