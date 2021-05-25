@@ -2,31 +2,44 @@
 <html lang="en">
 
 <head>
-    <title>Hello World !!</title>
+    <title>Deep Learning</title>
     <style>
         body {
             touch-action: none;
             /*https://developer.mozilla.org/en-US/docs/Web/CSS/touch-action*/
-            font-family: 'Kodchasan', sans-serif;
+            font-family: monospace;
+            background-color: #FEF4F1;
         }
 
         h1 {
             margin: 50px;
             font-size: 50px;
+            color: #733938;
             text-align: center;
+            
         }
 
         #text {
             margin: 50px;
             font-size: 30px;
+            color: #809D87;
             text-align: center;
+            
         }
 
         #paint {
-            border: 5px solid rgb(226, 96, 79);
+            border: 5px solid #CF9490;
             margin: auto;
+            margin-top: 0px;
+            text-align: center;
+            vertical-align: middle;
+            -moz-border-radius: 70px;
+            -webkit-border-radius: 70px;
+            border-radius: 70px;
+            
         }
 
+       
         #predicted {
             font-size: 60px;
             margin-top: 60px;
@@ -34,22 +47,32 @@
         }
 
         #number {
-            border: 3px solid black;
+            border: 3px solid #B5CCBD;
             margin: auto;
-            margin-top: 15px;
+            margin-top: 0px;
             text-align: center;
             vertical-align: middle;
+            -moz-border-radius: 70px;
+            -webkit-border-radius: 70px;
+            border-radius: 40px;
         }
 
         #clear {
-            margin: auto;
-            margin-top: 50px;
-            padding: 20px;
-            text-align: center;
-            font-family: 'Kodchasan', sans-serif;
+            width: 120px;
+            height: 40px;
+            border-radius: 5px;
+            background-color:whitesmoke;
+            border-color: #AFEEEE;
         }
+
+        
+
+        
+        
+
     </style>
 </head>
+
 
 <body>
     <!--<script type="text/javascript" src="http://livejs.com/live.js"></script>-->
@@ -57,17 +80,32 @@
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.5.2/dist/tf.min.js"></script>
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Kodchasan:wght@600&display=swap" rel="stylesheet">
-    <div id="input">
-        <h1>Digit Recognition</h1>
-        <div id="paint">
-            <canvas id="myCanvas"></canvas>
-        </div>
-    </div>
-    <div id="predicted">
-        <div id="text">Recognized digit</div>
-        <div id="number"></div>
-        <button id="clear">Clear</button>
-    </div>
+
+  
+    <div class="container-fluid">
+
+            
+            <div id="input">
+                <h1 >Digit Recognition</h1>
+                <div id="paint">
+                    <canvas id="myCanvas"></canvas>
+                </div>
+                
+            </div>
+        
+            <div id="predicted">
+                <div id="text">Recognized digit</div>
+                <div id="number"></div>
+                <button id="clear">Clear</button>
+            </div>
+             
+        </div>  
+
+    
+    
+    
+    
+
     <script>
         var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         if (isMobile) {
